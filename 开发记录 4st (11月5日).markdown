@@ -1,0 +1,222 @@
+﻿# 开发记录 4st (11月5日)
+
+标签（空格分隔）： 实习 Android
+
+---
+
+[TOC]
+
+
+----------
+
+
+## Android 命名规范整理
+
+### 包命名规范
+采用反域名命名规则，包名全部小写，连续的单词只是简单地连接起来，不使用下划线，一级包名为com，二级包名为xxx（可以是公司域名或者个人命名），三级包名根据应用进行命名，四级包名为模块名或层级名。
+> 例如：com.ykfstudio.todoapp.adapter
+常用四级包名如下：activities、fragment、adapter、bean、db、view、service、broadcast、base.
+
+
+----------
+
+
+### JAVA类命名规范
+采用大驼峰式命名法（每个单词的第一个字母都大写），尽量避免缩写，除非该缩写是众所周知的，比如HTML，URL,如果类名称包含单词缩写，则单词缩写的每个字母均应大写。
+> 例如：SplashActivity | PlayService | TimeBroadcast |  JsonHTTPSRequest | MySQLiteDBHelper | ThreadPoolManager
+
+
+----------
+
+
+### 接口命名规范
+命名规则与类一样采用大驼峰命名法，多以able或ible结尾。
+> 例如：interface Runable | interface Accessible
+
+
+----------
+
+
+### 成员变量命名规范
+采用小驼峰命名法（除了第一个单词，每个单词的第一个字母都大写）
+
+#### 临时变量命名
+使用标准的Java命名方法，不推荐使用Google的m命名法。例如：
+> 例如：private String userName，而不推荐 private String mUserName;
+
+#### 常量命名
+常量使用全大写字母加下划线的方式命名。例如：
+> 例如：public static final String TAG = "tag";
+
+#### 控件实例命名
+类中控件名称必须与xml布局id保持一致(可以去掉{module_name})。
+> 例如：在布局文件中 Button 的id为: android:id="@+id/btn_pay"
+private Button btn_pay;
+
+
+----------
+
+
+### 方法命名规范
+动词或动名词，采用小驼峰命名法，通常体现出方法作用。
+> 例如：run()  | onCreate()  | syncProducts() 
+初始化：initXX()、返回某个值：getXX()、保存数据相关：saveXX()
+数据进行处理：processXX()
+
+
+----------
+
+
+### 布局文件(Layout)命名规范
+
+全部小写，采用下划线命名法。其中`{module_name}`为业务模块或是功能模块等模块化的名称或简称。
+
+activity layout： {module_name}_activity_{名称} 
+> 例如：crm_activity_main.xml | crm_activity_shopping.xml
+个人觉得前面的{module_name}可以不用写，activity_main.xml同样具有标识性
+
+fragment layout:{module_name}_fragment_{名称} 
+> 例如：crm_fragment_main.xml | crm_fragment_shopping.xml
+
+Dialog layout: {module_name}_dialog_{名称} 
+> 例如：crm_dialog_loading.xml
+
+列表项布局命名：{module_name}_list_item_{名称} 
+> 例如：crm_listitem_customer.xml
+
+包含项布局命名：include_{名称} 
+> 例如：include_head.xml
+
+adapter的子布局： {module_name}_item_{名称} 
+> 例如：qz_item_order.xml
+
+widget layout： {module_name}_widget_{名称} 
+> 例如：crm_widget_shopping_detail.xml
+
+
+----------
+
+
+### 资源id命名规范
+命名模式为：{view缩写}_{module_name}_{view的逻辑名称}，
+> 例如：顾客管理CRM模块布局 LinearLayout 的布局id –> ll_crm_content，
+模块简称为qz的 ImageView 的布局id –> iv_qz_photo
+
+常见控件View与其缩写对照参考表如下：
+| 控件       | 缩写   | 控件        | 缩写   | 
+| --------   | -----:  | 
+| LinearLayout | ll  | RelativeLayout | rl |
+| TextView | tv  | Button | btn |
+| ImageButton | imgBtn  | ImageView | iv |
+| CheckBox | cb  | RadioButton | rb |
+| DatePicker | dtPk  | EditText | et |
+| TimePicker | tmPk | ProgressBar | proBar |
+| WebView | wv  | Spinner | spn |
+| ScrollView | sv  | ListView | lv |
+
+
+----------
+
+
+### 图片资源文件命名规范
+图标命名：{module_name}_ic_{名称} 
+> 例如：crm_ic_app.png
+
+背景图片命名： {module_name}_bg_{名称} 
+> 例如：crm_bg_navbar_highlight_normal.9.png
+
+按钮Button命名： {module_name}_btn_{名称} 
+> 例如：crm_btn_login_normal.9.png
+
+按钮checkbox图片命名：{module_name}_checkbox_{名称} 
+> 例如：crm_checkbox_cart_true.png
+
+其他图片命名：{module_name}_icon_{名称} 
+> 例如：qz_icon_blue_circle.png
+
+
+----------
+
+
+### 代码风格
+
+
+**空格问题**
+```
+if else | while | 运算符两端 等后面需用空格隔开。例如：
+
+规范的编写方式：
+if (hasMoney()) {
+
+} else {
+ 
+}
+ 
+for (int i = 0; i &lt; 10; i++) {
+ 
+}
+```
+**注释**
+
+必须要对所有实例变量、类常量进行注释说明 例如：
+```
+// 用户姓名
+private String userName
+```
+必须对所有的类、接口进行注释说明 例如：
+```
+/**
+* Activity基类
+*
+*/
+public class BaseActivity extends Activity
+{
+ 
+}
+```
+必须对所有的方法进行注释说明 例如:
+```
+/**
+* 请求
+*
+* @param path 路径
+* @param generalParams 基本参数
+* @param businessParams 业务参数
+* @return 请求结果
+* @throws ApiException 请求错误则返回该异常
+*/
+public Map<String, Object> request (String path,
+              Map<String, Object> generalParams,
+              Map<String, Object> businessParams) throws ApiException {
+  
+   return null;
+}
+```
+> **参考来源**
+[Code Style Guidelines for Contributors](http://source.android.com/source/code-style.html#java-language-rules)
+[Android开源项目-编码风格规范-译文](http://blog.sina.com.cn/s/blog_48d491300100zwzg.html#fully-qualify-imports)
+[Java coding conventions](https://docs.oracle.com/javase/tutorial/java/nutsandbolts/variables.html)
+[最佳实践之Android代码规范](http://www.androidchina.net/2141.html)
+[Android研发规范](http://blog.csdn.net/wwj_748/article/details/42347283)
+[Google Java编程风格指南](http://www.hawstein.com/posts/google-java-style.html#Naming)
+
+
+----------
+
+
+
+
+### Java 随机数生成函数
+
+
+
+### 较杂
+setBackgroundResource() 参数 drawable or int
+
+
+----------
+作者 [@Kelvine][1]     
+Create：2015 年 11月 05日  
+Update：2015 年 11月 07日
+
+[1]: http://ykfstudio.wang/

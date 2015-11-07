@@ -1,0 +1,40 @@
+﻿# 开发记录 3st (11月4日)
+
+标签（空格分隔）： 实习
+
+---
+
+## 代码实现页面动态布局设计
+
+### layoutParams 使用
+
+     // 添加 Item 布局标题 并绑定至父布局
+     LinearLayout layoutItemHead = new LinearLayout(this);
+     LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);// 第一个参数为宽，第二个为高
+     layoutItemHead.setOrientation(LinearLayout.HORIZONTAL);
+     layoutItemHead.setLayoutParams(lp2);
+            
+    // 标题中 Textview 设置
+     TextView[] textViewItemHead = new TextView[3];
+     for (TextView textView : textViewItemHead) {
+         textView = new TextView(this);
+         textView.setText("ItemTitle");
+         textView.setGravity(Gravity.LEFT);
+         textView.setTextSize(getResources().getDimension(R.dimen.Item_Head_Size));
+         textView.setTextColor(getResources().getColor(R.color.black));   
+         //textView.setTextColor(Color.parseColor("#ffffff"));
+         textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+         layoutItemHead.addView(textView);
+
+除此之外，还可以设置调用 lp1.setMargins();
+[ViewGroup.LayoutParams 官方文档](https://developer.android.com/intl/zh-cn/reference/android/view/ViewGroup.LayoutParams.html)
+[LinearLayout.LayoutParams](https://developer.android.com/intl/zh-cn/reference/android/widget/LinearLayout.LayoutParams.html)
+[RelativeLayout.LayoutParams](https://developer.android.com/intl/zh-cn/reference/android/widget/RelativeLayout.LayoutParams.html)
+[android 使用代码实现 RelativeLayout布局](http://www.cnblogs.com/bavariama/archive/2013/03/19/2969171.html) 
+
+
+### 其他
+setBackgroundColor(Color.parseColor("#22ff4444"));
+
+LayoutInflater是用来找res/layout/下的xml布局文件，并且实例化；
+[LayoutInflater API文档](https://developer.android.com/intl/zh-cn/reference/android/view/LayoutInflater.html)

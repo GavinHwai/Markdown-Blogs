@@ -1,0 +1,410 @@
+﻿# 开发记录 1st（11月2日）
+
+
+标签（空格分隔）： 实习 Android
+
+---
+[TOC]
+
+
+----------
+
+
+## Android Studio 快捷键
+| Action        | Win/Linux   | Action        | Win/Linux   | 
+| --------   | -----:  | 
+| 注释代码(//)  | Ctrl + /  | 注释代码(/**/)    | Ctrl + Shift + / |
+| 格式化代码    |  Ctrl + Shift + L | 清除无效包引用 | Alt + Shift + O |
+| 查找    |    Ctrl + F    |查找+替换       |   Ctrl + R    |
+| 上下移动代码  |   Alt + Shift + Up/Down | 删除行 |   Ctrl + Y    |
+| 扩大缩小选中范围 |   Ctrl + W/Ctrl + Shift + W   |快捷生成结构体   |   Ctrl + Alt + T   |
+| 快捷覆写方法 |    Ctrl + O   |   快捷定位到行首/尾 |   Ctrl + Left/Right  |
+| 折叠展开代码块 |    Ctrl + Plus/Minus   | 折叠展开全部代码块        |    Ctrl + Shift + Plus,Minus    |
+| 文件方法结构  |    Ctrl + F12   |查找调用的位置        |    Ctrl + Alt + H  |
+| 大小写转换  |    Ctrl + Shift + U  |
+
+> **参考来源**
+[Android Studio 快捷键整理分享](http://www.android-studio.org/index.php/docs/experience/142-androidstudio-shortcut-keys)
+
+<br>
+
+----------
+
+## Android LayoutInflater
+[**LayoutInflater docs**](https://developer.android.com/intl/zh-cn/reference/android/view/LayoutInflater.html)
+Instantiates a layout XML file into its corresponding View objects. It is never used directly. Instead, use getLayoutInflater() or getSystemService(Class) to retrieve a standard LayoutInflater instance that is already hooked up to the current context and correctly configured for the device you are running on.
+ 
+LayoutInflater是用来找res/layout/下的xml布局文件并且实例化；而findViewById()是找xml布局文件下的具体widget控件（如Button，TextView等）。
+
+----------
+
+### 获取LayoutInflater实例的三种方法
+```
+1. LayoutInflater inflater = getLayoutInflater();
+2. LayoutInflater inflater = LayoutInflater.from(context);
+3. LayoutInflater inflater = LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+查看源码可知，这三种方法的本质都是调用 Context.getSystemService() 这个方法。
+```
+----------
+
+### 调用inflate()加载布局文件
+#### 常用方法
+```
+ View inflate (int resource, ViewGroup root)
+ 
+```
+>**Parameters** 
+1. resource	&nbsp;ID for an XML layout resource to load (e.g., R.layout.main_page)
+2. root	&nbsp;Optional view to be the parent of the generated hierarchy.
+**Returns**
+The root View of the inflated hierarchy. If root was supplied, this is the root View; otherwise it is the root of the inflated XML file.
+
+#### 接收三个参数的方法重载
+```
+public View inflate (int resource, ViewGroup root, boolean attachToRoot)
+```
+>**Parameters**
+1. resource:  &nbsp; ID for an XML layout resource to load (e.g., R.layout.main_page)
+2. root: &nbsp;Optional view to be the parent of the generated hierarchy (if attachToRoot is true), or else simply an object that provides a set of LayoutParams values for root of the returned hierarchy (if attachToRoot is false.)
+这是一个可选参数，resource布局文件中layout_*参数设置的参照物就是这个root，也就是说inflate方法会根据这个root的大小，将resource布局文件中layout_*参数转换成一个LayoutParam对象
+3. attachToRoot: &nbsp;Whether the inflated hierarchy should be attached to the root parameter? If false, root is only used to create the correct subclass of LayoutParams for the root view in the XML.
+是否将这个生成的View添加到这个root中去
+**Returns:** The root View of the inflated hierarchy. If root was supplied and attachToRoot is true, this is root; otherwise it is the root of the inflated XML file.
+
+### 程序实例
+
+> Main layout (main.xml):
+```
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+</LinearLayout>
+```
+>Added into this container is a separate TextView, visible as small red square if layout parameters are successfully applied from XML (red.xml):
+```
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="25dp"
+    android:layout_height="25dp"
+    android:background="#ff0000"
+    android:text="red" />
+```
+> Now LayoutInflater is used with several variations of call parameters
+```
+public class InflaterTest extends Activity {
+
+    private View view;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+
+      setContentView(R.layout.main);
+      ViewGroup parent = (ViewGroup) findViewById(R.id.container);
+
+      // result: layout_height=wrap_content layout_width=match_parent
+      view = LayoutInflater.from(this).inflate(R.layout.red, null);
+      parent.addView(view);
+
+      // result: layout_height=100 layout_width=100
+      view = LayoutInflater.from(this).inflate(R.layout.red, null);
+      parent.addView(view, 100, 100);
+
+      // result: layout_height=25dp layout_width=25dp
+      // view=textView due to attachRoot=false
+      view = LayoutInflater.from(this).inflate(R.layout.red, parent, false);
+      parent.addView(view);
+
+      // result: layout_height=25dp layout_width=25dp 
+      // parent.addView not necessary as this is already done by attachRoot=true
+      // view=root due to parent supplied as hierarchy root and attachRoot=true
+      view = LayoutInflater.from(this).inflate(R.layout.red, parent, true);
+    }
+}
+```
+**SYNOPSIS:**
+Calling LayoutInflater without specifying root leads to inflate call ignoring the layout parameters from the XML. Calling inflate with root not equal null and attachRoot=true does load the layout parameters, but returns the root object again, which prevents further layout changes to the loaded object (unless you can find it using findViewById()). The calling convention you most likely would like to use is therefore this one:
+```
+loadedView = LayoutInflater.from(context)
+                .inflate(R.layout.layout_to_load, parent, false);
+```
+ 
+在不设置attachToRoot参数的情况下，如果root不为null，attachToRoot参数默认为true。只有root 存在的前提下才会等保留layout_*等参数，因为layout_*参数转换成一个LayoutParam对象的前提是待实例化的布局存在于某个布局之中，即root。attachRoot = false or true 决定返回的view 是原布局还是根布局。
+```
+LinearLayout layout = (LinearLayout)findViewById(R.id.container);
+View view = View.inflate(this, R.layout.layout_menu_item, null);
+layout.addView(view);
+*********等价于*********
+LinearLayout layout = (LinearLayout)findViewById(R.id.container);
+View view = View.inflate(this, R.layout.layout_menu_item, layout);
+```
+View.inflate(Context context, int resource, ViewGroup root) 本质上是调用了了 LayoutInflater.from(context).inflate(resource, root, root != null)
+
+----------
+
+### 我的实例
+```
+View view = View.inflate(this, R.layout.at_welcome, null);
+  
+/*
+开奖公告页面，将其他页面中的子元素嵌入到当前页面
+*/
+// 通过inflate()方法将 layout文件转化为 View文件
+View view = getLayoutInflater().inflate(R.layout.ball_view, null);
+    //通过 findViewById()方法将已获取页面中子元素找到并实例化
+    TextView textView = (TextView) view.findViewById(R.id.ballView);
+    //通过View.view.findViewById()获取Layout对象
+    mainView = (LinearLayout) view.findViewById(R.id.mainView);
+    //将子元素textview从中移除
+    mainView.removeView(textView);
+    //将子元素添加到主页面，实现代码复用和页面动态布局
+    layoutItemContent.addView(textView);
+
+/*
+实现功能：将某一个Layout布局文件实例化为View对象，并嵌套至当前页面
+*/
+// 得到与布局文件对应的 View 对象
+View scroll_item_title_view = getLayoutInflater().inflate(R.layout.scroll_item_title, null); 
+    // 添加View 对象到linearLayoutItem实现页面动态设计
+    linearLayoutItem.addView(scroll_item_title_view);    
+```
+
+> **参考来源：**
+[Android LayoutInflater 详解](http://blog.csdn.net/biezhihua/article/details/43996289)
+[Android LayoutInflater原理分析，带你一步步深入了解View(一)](http://blog.csdn.net/guolin_blog/article/details/12921889)
+[LayoutInflater.inflate方法解析](http://bxbxbai.github.io/2014/11/19/make-sense-of-layoutinflater/)
+[Making sense of LayoutInflater](http://stackoverflow.com/questions/5026926/making-sense-of-layoutinflater)
+
+----------
+
+## LayoutParams 
+This part shows some details about how to create layout programmatically, not using layout-files.
+
+**继承关系**
+ViewGroup.LayoutParams ——> ViewGroup.MarginLayoutParams ——> LinearLayout.LayoutParams、RelativeLayout.LayoutParams…
+```
+ViewGroup.LayoutParams(int width, int height)；
+
+```
+
+
+> ViewGroup.LayoutParams has only two attributes: height and width. It’s subclass - ViewGroup.MarginLayoutParams inherits these two attributes and has four of its own: bottomMargin, leftMargin, rightMargin, topMargin. LinearLayout.LayoutParams class, which is by-turn a subclass of ViewGroup.MarginLayoutParams, inherits already 6 attributes from it and adds two of its own: gravity and weight.
+
+&nbsp;
+
+![](http://7xo54z.com1.z0.glb.clouddn.com/20110913_L0016_L_LayoutParams.png)
+&nbsp;
+
+代码示例
+
+```
+public class MainActivity extends Activity {
+    /** Called when the activity is first created. */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // creating LinearLayout
+        LinearLayout linLayout = new LinearLayout(this);
+        // specifying vertical orientation
+        linLayout.setOrientation(LinearLayout.VERTICAL);
+        // creating LayoutParams  
+        LayoutParams linLayoutParam = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT); 
+        // set LinearLayout as a root element of the screen 
+        setContentView(linLayout, linLayoutParam);
+        
+        LayoutParams lpView = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        
+        TextView tv = new TextView(this);
+        tv.setText("TextView");
+        tv.setLayoutParams(lpView);
+        linLayout.addView(tv);
+        
+        Button btn = new Button(this);
+        btn.setText("Button");
+        linLayout.addView(btn, lpView);
+
+        
+        LinearLayout.LayoutParams leftMarginParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        leftMarginParams.leftMargin = 50;
+        
+        Button btn1 = new Button(this);
+        btn1.setText("Button1");
+        linLayout.addView(btn1, leftMarginParams);
+
+        LinearLayout.LayoutParams rightGravityParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        rightGravityParams.gravity = Gravity.RIGHT;
+        
+        Button btn2 = new Button(this);
+        btn2.setText("Button2");
+        linLayout.addView(btn2, rightGravityParams);
+    }
+}
+
+```
+
+
+----------
+
+
+### addView
+addView(View view,LayoutParams params)
+
+### findViewById(View & Activity)
+```
+//View.findViewById()
+public final View findViewById (int id);
+```
+> Look for a child view with the given id. If this view has the given id, return this view.
+Parameters
+id	The id to search for.
+Returns
+The view that has the given id in the hierarchy or null
+```
+//Activity.findViewById()
+public View findViewById (int id)
+```
+> Added in API level 1
+Finds a view that was identified by the id attribute from the XML that was processed in onCreate(Bundle).
+Returns
+The view if found or null otherwise.
+
+&nbsp;
+> **参考来源**
+[Creating layout programmatically. LayoutParams](http://startandroid.ru/en/lessons/complete-list/220-lesson-16-creating-layout-programmatically-layoutparams.html)
+[The docs for ViewGroup.LayoutParams and the constructors](https://developer.android.com/intl/zh-cn/reference/android/view/ViewGroup.LayoutParams.html)
+[深入理解findViewById原理](http://blog.csdn.net/bless2015/article/details/46618639)
+
+----------
+
+## EventBus
+### General information 
+EventBus is publish/subscribe event bus optimized for Android,it simplifies the communication between components(decouples event senders and receivers,performs well with Activities, Fragments, and background threads,avoids complex and error-prone dependencies and life cycle issues)
+
+![](http://7xo54z.com1.z0.glb.clouddn.com/EventBus-Publish-Subscribe.png)
+
+###  General usage
+```
+//自定义一个类，可以是空类，比如：
+public class AnyEventType {  
+     public AnyEventType(){}  
+ }
+//在要接收消息的页面注册：
+eventBus.register(this);  
+//发送消息
+eventBus.post(new AnyEventType event); 
+//接受消息的页面实现(共有四个函数，各功能不同，这是其中之一)：
+public void onEvent(AnyEventType event) {}  
+//解除注册
+eventBus.unregister(this);  
+```
+  
+  
+```
+    在接收消息页面注册
+    @Override
+    public void onStart() {
+            super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    
+    发送消息
+    EventBus.getDefault().post(new MessageEvent("Hello everyone!"));
+
+    接收消息页面实现
+    public void onEvent(MessageEvent event) {
+        log(event.message);
+    }
+    还有三个 onEventMainThread,onEventBackgroundThread,onEventAsync方法。
+
+    在接收消息页面解除注册
+    @Override
+    public void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    定义消息类（Define events）
+    Events are POJO (plain old Java object) without any specific requirements.
+    public class MessageEvent {
+        public final String message;
+        public MessageEvent(String message) {
+            this.message = message;
+    }
+}
+```
+
+ > **参考来源** 
+ [EventBus for Android](https://greenrobot.github.io/EventBus/)
+ [Details on EventBus and its API](https://github.com/greenrobot/EventBus/blob/master/HOWTO.md)
+ [ EventBus使用详解(一)——初步使用EventBus](http://blog.csdn.net/harvic880925/article/details/40660137)
+ 
+
+
+----------
+
+
+## JSON 使用
+```
+ex.
+    {
+    "id": "0001",
+	"type": "donut",
+	"name": "Cake",
+	"ppu": 0.55,
+	"batters":
+		{ 
+			"batter":
+				[
+					{ "id": "1001", "type": "Regular" },
+					{ "id": "1002", "type": "Chocolate" },
+					{ "id": "1003", "type": "Blueberry" },
+					{ "id": "1004", "type": "Devil's Food" }
+				]
+		},
+	"topping":
+		[
+			{ "id": "5001", "type": "None" },
+			{ "id": "5002", "type": "Glazed" },
+			{ "id": "5005", "type": "Sugar" },
+			{ "id": "5007", "type": "Powdered Sugar" },
+			{ "id": "5006", "type": "Chocolate with Sprinkles" },
+			{ "id": "5003", "type": "Chocolate" },
+			{ "id": "5004", "type": "Maple" }
+		]
+}
+
+// Returns the value mapped by name if it exists and is a JSONObject, or throws otherwise.
+JSONObject json = jDemo.getJSONObject("batters");
+
+// Returns the value mapped by name if it exists and is a JSONArray, or throws otherwise.
+JSONArray jArray = jDemo.getJSONArray("topping");
+
+// Returns the value mapped by name if it exists and is a double or can be coerced to a double
+Double x = jDemo.getDouble("ppu");
+
+// Returns the Object ubder subJson Array
+JSONArray jArray = jDemo.getJSONArray("topping");
+JSONObject json = jArray.getJsonObject(2);
+
+// Returns the value ubder subJson Object
+JSONArray jArray = jDemo.getJSONArray("topping");
+String s  = jArray.getJsonObject(2).get("type");
+
+```
+项目实战见实习第五天记录；
+
+ > **参考来源** 
+[JSONObject 官方文档](https://developer.android.com/intl/zh-cn/reference/org/json/JSONObject.html)
+[JSON Data Set Sample](https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html)
+
+
+----------
+作者 [@Kelvine][1]     
+Create：2015 年 11月 02日  
+Update：2015 年 11月 07日
+
+[1]: http://ykfstudio.wang/

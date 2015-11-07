@@ -1,0 +1,36 @@
+﻿# 开发记录 2st（11月3日）
+
+标签（空格分隔）： 实习 Android
+
+---
+
+### Android Studio 使用
+<supports-screens>
+SYNTAX:
+<supports-screens android:resizeable=["true"| "false"]
+                  android:smallScreens=["true" | "false"]
+                  android:normalScreens=["true" | "false"]
+                  android:largeScreens=["true" | "false"]
+                  android:xlargeScreens=["true" | "false"]
+                  android:anyDensity=["true" | "false"]
+                  android:requiresSmallestWidthDp="integer"
+                  android:compatibleWidthLimitDp="integer"
+                  android:largestWidthLimitDp="integer"/>
+                  
+                  
+### ScrollView 使用
+
+
+
+### Android include
+
+
+### 较杂
+
+
+
+
+
+
+
+

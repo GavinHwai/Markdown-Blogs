@@ -1,0 +1,68 @@
+﻿# 开发记录 5st (11月6日)
+
+标签（空格分隔）： 实习
+
+---
+
+### 子线程
+
+
+
+### OkHttp
+
+[Github 库](http://square.github.io/okhttp/)
+
+
+
+### JAVA 文件命名规范
+
+方法
+变量
+以及Android　命名
+
+
+### Json 解析
+
+
+[Json 解析实例参考](http://blog.csdn.net/wulianghuan/article/details/8630069)
+
+
+
+### Java 内部类如何被外部类调用
+
+    class Outer{
+      private int size=10;
+      class Inner{
+            public void doStuff(){
+                    System.out.println(++size);
+            }
+      }
+      }
+      public class Test{
+      public static void main(String [] args){
+             Outer outer=new Outer();
+             Outer.Inner inner=outer.new Inner();
+             inner.doStuff();
+      }
+      }
+
+外部类调用内部类中成员方法（非静态方法）
+
+
+### java 基础知识复习
+[Java The Complete Reference Ninth Edition](http://pan.baidu.com/s/1pJ8EHOB)
+
+
+
+### Github 配置
+[Github 配置连接Android](http://www.mamicode.com/info-detail-512945.html)
+
+### 工具使用
+colorpic（颜色采集）
+JsonView（格式化显示Json文件）
+genymotion 虚拟机使用
+
+
+### 其他
+Andorid Debuge
+Gson使用

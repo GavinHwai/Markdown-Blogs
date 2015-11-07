@@ -1,0 +1,12 @@
+﻿# 那些来不及看的文章和博客
+
+标签（空格分隔）： 未分类
+
+---
+[Google Android](http://startandroid.ru/en/lessons/complete-list/222-lesson-17-creating-view-components-in-a-running-application.html)
+[郭霖的专栏](http://blog.csdn.net/guolin_blog?viewmode=contents)
+[Android编码规范](https://github.com/mmclub/wiki/wiki/Android编码规范)
+
+
+
+
