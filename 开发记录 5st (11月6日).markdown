@@ -1,35 +1,367 @@
 ﻿# 开发记录 5st (11月6日)
 
-标签（空格分隔）： 实习
+标签（空格分隔）： 实习 Android
 
 ---
-
-### 子线程
-
+[TOC]
 
 
-### OkHttp
-
-[Github 库](http://square.github.io/okhttp/)
+----------
 
 
+## AsyncTask
+### 功能
+AsyncTask 允许对用户界面执行异步操作。它会先阻塞工作线程中的操作，然后在 UI 线程中发布结果
+### Usage
+要使用它，必须创建 AsyncTask 子类并实现 doInBackground() 回调方法，该方法将在后台线程池中运行。要更新 UI，必须实现 onPostExecute() 以传递 doInBackground() 返回的结果并在 UI 线程中运行，这样，您即可安全更新 UI。稍后，您可以通过从 UI 线程调用 execute() 来运行任务。
+### 程序实例
+```
+private class DownloadFilesTask extends AsyncTask<URL, Integer, Long> {
+     protected Long doInBackground(URL... urls) {
+         int count = urls.length;
+         long totalSize = 0;
+         for (int i = 0; i < count; i++) {
+             totalSize += Downloader.downloadFile(urls[i]);
+             publishProgress((int) ((i / (float) count) * 100));
+             // Escape early if cancel() is called
+             if (isCancelled()) break;
+         }
+         return totalSize;
+     }
 
-### JAVA 文件命名规范
+     protected void onProgressUpdate(Integer... progress) {
+         setProgressPercent(progress[0]);
+     }
 
-方法
-变量
-以及Android　命名
+     protected void onPostExecute(Long result) {
+         showDialog("Downloaded " + result + " bytes");
+     }
+ }
+```
+### My Demo
+```
+// AsyncTask子类
+private class MyAsyncTask extends AsyncTask<Void,Void,String>{
+
+        @Override
+        protected String doInBackground(Void... params) {
+
+            try {
+                return new OkHttpExample().run();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            try {
+                bean = new PrizeResultBean(s);
+                initUI();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+// Http 网络请求    
+public class OkHttpExample {
+    OkHttpClient client = new OkHttpClient();
+
+    String run(String url) throws IOException {
+
+        Request request = new Request.Builder()
+                .url(url).addHeader("appName","XXX").addHeader("appVersion","XXX").addHeader("appUserAgent",XXX)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        return response.body().string();
+    }
+
+    public String run() throws IOException {
+
+        String response = run("http://XXX");
+       return response;
+    }
+}
+// 实例化调用
+new MyAsyncTask().execute();
+```
+
+> **参考来源**
+[The docs for AsyncTask](https://developer.android.com/intl/zh-cn/reference/android/os/AsyncTask.html)
+[The Processes and Threads developer guide](https://developer.android.com/intl/zh-cn/guide/components/processes-and-threads.html)
+[Android background processing with Handlers, AsyncTask and Loaders - Tutorial](http://www.vogella.com/tutorials/AndroidBackgroundProcessing/article.html#d21241e43)
+[AsyncTask Android example](http://stackoverflow.com/questions/9671546/asynctask-android-example)
+[详解Android中AsyncTask的使用](http://blog.csdn.net/liuhe688/article/details/6532519)
+## OkHttp
+
+### Overview
+
+> OkHttp is an HTTP client that’s efficient by default:
+ - HTTP/2 and SPDY support allows all requests to the same host to share a socket.
+- Connection pooling reduces request latency (if SPDY isn’t available).
+- Transparent GZIP shrinks download sizes.
+- Response caching avoids the network completely for repeat requests.
+
+### Offical Examples
+
+**GET A URL**
+This program downloads a URL and print its contents as a string.
+```
+package com.squareup.okhttp.guide;
+
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+import java.io.IOException;
+
+public class GetExample {
+  OkHttpClient client = new OkHttpClient();
+
+  String run(String url) throws IOException {
+    Request request = new Request.Builder()
+        .url(url)
+        .build();
+
+    Response response = client.newCall(request).execute();
+    return response.body().string();
+  }
+
+  public static void main(String[] args) throws IOException {
+    GetExample example = new GetExample();
+    String response = example.run("https://raw.github.com/square/okhttp/master/README.md");
+    System.out.println(response);
+  }
+}
+```
+**POST TO A SERVER**
+This program posts data to a service. 
+```
+package com.squareup.okhttp.guide;
+
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
+import java.io.IOException;
+
+public class PostExample {
+  public static final MediaType JSON
+      = MediaType.parse("application/json; charset=utf-8");
+
+  OkHttpClient client = new OkHttpClient();
+
+  String post(String url, String json) throws IOException {
+    RequestBody body = RequestBody.create(JSON, json);
+    Request request = new Request.Builder()
+        .url(url)
+        .post(body)
+        .build();
+    Response response = client.newCall(request).execute();
+    return response.body().string();
+  }
+
+  String bowlingJson(String player1, String player2) {
+    return "{'winCondition':'HIGH_SCORE',"
+        + "'name':'Bowling',"
+        + "'round':4,"
+        + "'lastSaved':1367702411696,"
+        + "'dateStarted':1367702378785,"
+        + "'players':["
+        + "{'name':'" + player1 + "','history':[10,8,6,7,8],'color':-13388315,'total':39},"
+        + "{'name':'" + player2 + "','history':[6,10,5,10,10],'color':-48060,'total':41}"
+        + "]}";
+  }
+
+  public static void main(String[] args) throws IOException {
+    PostExample example = new PostExample();
+    String json = example.bowlingJson("Jesse", "Jake");
+    String response = example.post("http://www.roundsapp.com/post", json);
+    System.out.println(response);
+  }
+}
+```
+
+> **参考来源**
+[Github 官方库](http://square.github.io/okhttp/)
 
 
-### Json 解析
 
 
+----------
+## JSON 介绍及解析
+### Json 介绍
+JSON (JavaScript Object Notation) 建构于两种结构：一种是以 (key/value)对形式存在的无序的JsonObject对象，另一种数据格式是有序的value的集合( JsonArray )。
+An JSON file consist of many components, Array, Objects, Key, Value.
+ 
+
+### Json Sample
+``` 
+ex.
+    {
+    "id": "0001",
+	"type": "donut",
+	"name": "Cake",
+	"ppu": 0.55,
+	"batters":
+		{ 
+			"batter":
+				[
+					{ "id": "1001", "type": "Regular" },
+					{ "id": "1002", "type": "Chocolate" },
+					{ "id": "1003", "type": "Blueberry" },
+					{ "id": "1004", "type": "Devil's Food" }
+				]
+		},
+	"topping":
+		[
+			{ "id": "5001", "type": "None" },
+			{ "id": "5002", "type": "Glazed" },
+			{ "id": "5005", "type": "Sugar" },
+			{ "id": "5007", "type": "Powdered Sugar" },
+			{ "id": "5006", "type": "Chocolate with Sprinkles" },
+			{ "id": "5003", "type": "Chocolate" },
+			{ "id": "5004", "type": "Maple" }
+		]
+}
+//根据String得到JsonObject
+String in;
+JSONObject jDemo = new JSONObject(in);
+
+// Returns the value mapped by name if it exists and is a JSONObject, or throws otherwise.
+JSONObject json = jDemo.getJSONObject("batters");
+
+// Returns the value mapped by name if it exists and is a JSONArray, or throws otherwise.
+JSONArray jArray = jDemo.getJSONArray("topping");
+
+// Returns the value mapped by name if it exists and is a double or can be coerced to a double
+Double x = jDemo.getDouble("ppu");
+
+// Returns the Object ubder subJson Array
+JSONArray jArray = jDemo.getJSONArray("topping");
+JSONObject json = jArray.getJsonObject(2);
+
+// Returns the value ubder subJson Object
+JSONArray jArray = jDemo.getJSONArray("topping");
+String s  = jArray.getJsonObject(2).get("type");
+
+```
+
+### Json 解析实例
+
+1、首先从网络下载Json 文件，并传入Bean 类中解析
+```
+@Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            try {
+                bean = new PrizeResultBean(s);
+                initUI();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            //Log.e(MainActivity.class.getName(), tempJson);
+        }
+```
+2、将Json String 型字符串作为参数传入构造函数，实例化得到Json 对象。
+```
+public class PrizeResultBean {
+
+    private SsqIssueEntity ssqIssue;
+    public PrizeResultBean(String s) throws JSONException{
+
+        JSONObject response = new JSONObject(s).getJSONObject("response");
+        JSONObject ssqIssueJsonObject = response.getJSONObject("ssqIssue");
+        ssqIssue = new SsqIssueEntity(ssqIssueJsonObject);
+    }
+
+    public void setSsqIssue(SsqIssueEntity ssqIssue) {
+            this.ssqIssue = ssqIssue;
+        }
+
+        public SsqIssueEntity getSsqIssue() {
+            return ssqIssue;
+        }
+
+        public static class SsqIssueEntity {
+            private String blueNumber;
+            private String gmtAward;
+            private String issueNo;
+            private List<String> redNumberList;
+
+            public SsqIssueEntity(JSONObject jo)throws JSONException{
+                  blueNumber = jo.getString("blueNumber");
+            }
+
+            public void setBlueNumber(String blueNumber) {
+                this.blueNumber = blueNumber;
+            }
+
+            public void setGmtAward(String gmtAward) {
+                this.gmtAward = gmtAward;
+            }
+
+            public void setIssueNo(String issueNo) {
+                this.issueNo = issueNo;
+            }
+
+            public void setRedNumberList(List<String> redNumberList) {
+                this.redNumberList = redNumberList;
+            }
+
+            public String getBlueNumber() {
+                return blueNumber;
+            }
+
+            public String getGmtAward() {
+                return gmtAward;
+            }
+
+            public String getIssueNo() {
+                return issueNo;
+            }
+
+            public List<String> getRedNumberList() {
+                return redNumberList;
+            }
+        }
+
+}
+```
+3、最终调用Get 方法得到结果
+```
+textView.setText(bean.getSsqIssue().getBlueNumber());
+```
+
+
+### Gson
+
+Gson is an open source java api for parsing and building json. It has extensive support for java generics. It also provides support for converting third party classes to json. It can be used to serialize and deserialize complex objects with deep hierarchies that may contain generic classes.
+> **参考来源**
+[JSONObject 官方文档](https://developer.android.com/intl/zh-cn/reference/org/json/JSONObject.html)
+[JSON Data Set Sample](https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html)
+
+> [Android - JSON Parser Tutorial](http://www.tutorialspoint.com/android/android_json_parser.htm)
+[Android JSON Tutorial: Create and Parse JSON data](http://www.javacodegeeks.com/2013/10/android-json-tutorial-create-and-parse-json-data.html)
+[JSON in Android - Tutorial](http://www.vogella.com/tutorials/AndroidJSON/article.html)
 [Json 解析实例参考](http://blog.csdn.net/wulianghuan/article/details/8630069)
 
+> [Gson User Guide](https://sites.google.com/site/gson/gson-user-guide)
+[Java Google Json (Gson) Introduction](http://www.studytrails.com/java/json/java-google-json-introduction.jsp)
 
+----------
+
+
+## Java 基础
 
 ### Java 内部类如何被外部类调用
 
+```
     class Outer{
       private int size=10;
       class Inner{
@@ -45,24 +377,32 @@
              inner.doStuff();
       }
       }
-
+```
 外部类调用内部类中成员方法（非静态方法）
 
 
-### java 基础知识复习
+> **参考来源**
 [Java The Complete Reference Ninth Edition](http://pan.baidu.com/s/1pJ8EHOB)
 
 
+----------
 
-### Github 配置
-[Github 配置连接Android](http://www.mamicode.com/info-detail-512945.html)
 
-### 工具使用
+## 工具使用
 colorpic（颜色采集）
 JsonView（格式化显示Json文件）
 genymotion 虚拟机使用
+[Github 配置连接Android](http://www.mamicode.com/info-detail-512945.html)
 
+----------
 
 ### 其他
 Andorid Debuge
-Gson使用
+
+
+----------
+作者 [@Kelvine][1]     
+Create：2015 年 11月 06日  
+Update：2015 年 11月 08日
+
+[1]: http://ykfstudio.wang/
